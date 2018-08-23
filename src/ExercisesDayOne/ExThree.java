@@ -15,38 +15,44 @@ b) How often does the problem occur?
 c) Use the synchronization techniques you’ve learned today, to make next() method atomic with respect to itself.
 d) Argue that your solution is correct (argue, don’t prove)
  */
-public class ExThree implements Runnable
-{
-    private int n = 0;
-    
-    public int next() throws InterruptedException
-    {
-        n++;
-        Thread.sleep(5); //<-- provokes the error 
-        n++;
-        return n;
-    }
-    
-
-    @Override
-    public void run() 
-    {
-        for(int i = 0; i < n; i++)
-        {
-            System.out.println("Run method: " + Thread.currentThread().getName() 
-                    + " --- " + i);
-        }
-    }
-    
+public class ExThree
+{   
     public static void main(String[] args) throws InterruptedException 
     {
-        ExThree eThree = new ExThree();
-        Thread t1 = new Thread(eThree);
-        Thread t2 = new Thread(eThree);
+        Even even = new Even();
+        Runnable r = new Runnable() 
+        {
+            @Override
+            public void run()
+            {
+                synchronized (even)
+                {
+                    for(int i = 0; i < 10000; i++)
+                    {
+                        if(even.next() % 2 != 0)
+                            System.out.println("Error");
+                        else
+                            System.out.println("No errors");
+                    }
+                }
+            }
+        };
+        
+        Thread t1 = new Thread(r);
+        Thread t2 = new Thread(r);
         
         t1.start();
-        eThree.next();
         t2.start();
-        eThree.next();
+    }
+    
+    static class Even 
+    {
+        private int n = 0;
+        public int next()
+        {
+            n++;
+            n++;    
+            return n;
+        }
     }
 }
